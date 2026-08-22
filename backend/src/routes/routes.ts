@@ -61,7 +61,7 @@ const updateUserController = new UpdateUserController();
 const deleteUserController = new DeleteUserController();
 const currentUserController = new CurrentUserController(); 
 
-routes.post('/users', createUserController.handle);
+routes.post('/users', isAuthenticated, createUserController.handle);
 routes.put('/users', isAuthenticated, updateUserController.handle);
 routes.delete('/users/:id', isAuthenticated, deleteUserController.handle);
 routes.get('/me', isAuthenticated, currentUserController.handle);
