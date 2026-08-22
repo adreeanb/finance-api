@@ -2,13 +2,8 @@ import { prisma } from '../../lib/prisma.js';
 import { GeminiService } from '../finance-ai/GeminiService.js';
 
 export interface WebhookPayload {
-  chatId: string;
+  userId: string; // Mudou para aceitar o ID direto do usuário logado
   message: string;
-  fromMe?: boolean;
-  pushName?: string;
-  payload_id?: string;
-  event?: string;
-  session?: string;
 }
 
 export class WhatsAppBotService {
@@ -17,64 +12,40 @@ export class WhatsAppBotService {
   private async getDefaultCategory(userId: string) {
     let cat = await prisma.category.findFirst({ where: { userId } });
     if (!cat) {
-      cat = await prisma.category.create({ data: { name: '📱 Lançado via WhatsApp', userId } });
+      cat = await prisma.category.create({ data: { name: '💬 Chat com IA', userId } });
     }
     return cat.id;
   }
 
   async processarMensagem(payload: WebhookPayload) {
-    // Blindagem de segurança
-    const data = Array.isArray(payload) ? payload[0] : payload;
+    const { userId, message } = payload;
 
-    if (!data || !data.chatId || !data.message) {
-      console.error("Payload inválido recebido do n8n:", payload);
-      return "";
+    if (!userId || !message) {
+      console.error("Payload inválido recebido:", payload);
+      return "Erro: Dados insuficientes para processar a mensagem.";
     }
 
-    // 🛡️ VALIDAÇÃO ANTI-LOOP: Se a mensagem contiver "BOT FINANCEIRO", o fluxo é descartado
-    if (data.message.toUpperCase().includes("BOT FINANCEIRO")) {
-      console.log("🔄 Mensagem do bot detectada e descartada para evitar loop.");
-      return ""; // Retorna vazio para indicar que deve ser ignorado
+    // 🛡️ VALIDAÇÃO ANTI-LOOP
+    if (message.toUpperCase().includes("BOT FINANCEIRO")) {
+      console.log("🔄 Mensagem do bot detectada e descartada.");
+      return ""; 
     }
 
-    let telefoneRemetente = "";
-
-    if (data.chatId.endsWith('@g.us')) {
-      // Cenário A: A mensagem foi enviada dentro de um GRUPO
-      if (data.fromMe) {
-        // Se fromMe for true, significa que foi VOCÊ (o dono do celular conectado) quem mandou
-        telefoneRemetente = "5549991039622"; 
-      } else if (data.senderId) {
-        // Se foi a outra pessoa no grupo, extraímos o número dela limpando o sufixo (ex: @s.whatsapp.net)
-        telefoneRemetente = data.senderId.split("@")[0].split(":")[0];
-      }
-    } else {
-      // Cenário B: Chat Privado (o próprio chatId já é o número da pessoa)
-      telefoneRemetente = data.chatId.split("@")[0];
-    }
-
-    // (Opcional) Trava de segurança para apenas vocês dois usarem o bot
-    const numerosPermitidos = ["5549991039622", "5549922222"];
-    if (!numerosPermitidos.includes(telefoneRemetente)) {
-      console.log(`Tentativa de uso por número não autorizado: ${telefoneRemetente}`);
-      return ""; // Ignora a mensagem de desconhecidos
-    }
-
-    // Busca no banco de dados EXATAMENTE o usuário que mandou a mensagem
-    const user = await prisma.user.findFirst({
-      where: { phone: telefoneRemetente },
+    // Busca o usuário diretamente pelo ID autenticado (JWT)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
 
     if (!user) {
-      return `BOT FINANCEIRO\n\n⚠️ Usuário não encontrado no sistema para o número ${telefoneRemetente}.`;
+      return "BOT FINANCEIRO\n\n⚠️ Usuário não encontrado no sistema.";
     }
 
-    // 2. Interpreta com IA usando a mensagem limpa vinda do payload
-    const dados = await this.geminiService.interpretarMensagem(data.message);
+    // Interpreta com IA
+    const dados = await this.geminiService.interpretarMensagem(message);
     const categoryId = await this.getDefaultCategory(user.id);
     let resposta = "";
 
-    // 3. Roteamento de Intenções
+    // Roteamento de Intenções
     switch (dados.intent) {
       case 'LANCAMENTO':
         if (dados.parcelado && dados.numeroParcelas > 1) {
@@ -140,7 +111,6 @@ export class WhatsAppBotService {
         resposta = "Desculpe, não consegui interpretar o seu comando. Pode tentar explicar de outra forma?";
     }
 
-    // 4. Verificação de Alerta Rápido
     if (['LANCAMENTO', 'GASTO_FIXO'].includes(dados.intent)) {
       const resumoAtualizado = await this.gerarResumoDoMesAtual(user);
       if (resumoAtualizado.expensePercentage >= 80) {
@@ -148,7 +118,6 @@ export class WhatsAppBotService {
       }
     }
 
-    // Retorna a resposta sempre precedida pela assinatura do bot
     return `BOT FINANCEIRO\n\n${resposta}`;
   }
 
@@ -173,7 +142,7 @@ export class WhatsAppBotService {
       where: { userId: user.id, isActive: true }
     });
 
-    let totalIncome = Number(user.salary);
+    let totalIncome = Number(user.salary || 0);
     let totalExpense = 0;
 
     transacoes.forEach(t => {
