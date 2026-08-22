@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN     "phone" TEXT,
+ADD COLUMN     "salary" DOUBLE PRECISION NOT NULL DEFAULT 0;

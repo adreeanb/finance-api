@@ -11,6 +11,64 @@ services:
       - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  
+  redis:
+    image: redis:latest
+    platform: linux/amd64
+    command: redis-server --requirepass default
+    environment:
+      REDIS_USER: default
+      REDIS_PASSWORD: default
+    ports:
+      - "6379:6379"
+  
+  waha:
+    image: devlikeapro/waha:latest
+    platform: linux/amd64
+    environment:
+      # Chama o n8n direto pelo nome do container na rede Docker
+      WHATSAPP_HOOK_URL: http://n8n:5678/webhook/webhook
+      WHATSAPP_DEFAULT_ENGINE: GOWS
+      WHATSAPP_HOOK_EVENTS: message.any
+      WAHA_NO_API_KEY: true
+      WAHA_DASHBOARD_NO_PASSWORD: true
+      WHATSAPP_SWAGGER_NO_PASSWORD: true
+    volumes:
+      - waha_sessions:/app/.sessions
+      - waha_media:/app/.media
+    ports:
+      - "3000:3000"
+    
+  n8n:
+    image: n8nio/n8n:latest
+    platform: linux/amd64
+    environment:
+      WEBHOOK_URL: http://host.docker.internal:5678
+      N8N_HOST: host.docker.internal
+      GENERIC_TIMEZONE: America/Sao_Paulo
+      N8N_LOG_LEVEL: debug
+      N8N_SECURE_COOKIE: false
+      N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE: true
+    volumes:
+      - n8n_data:/home/node/.n8n
+    ports:
+      - "5678:5678"
+
+  api:
+    build: 
+      context: . # Aponta para a pasta onde está seu Dockerfile do Node.js
+    container_name: finance_api
+    ports:
+      - "3333:3333"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgrespassword@postgres:5432/finance_db?schema=public
+      - GEMINI_API_KEY=${GEMINI_API_KEY} # Ele vai ler do .env na raiz do projeto
+    depends_on:
+      - postgres
+    restart: always
 
 volumes:
   postgres_data:
+  waha_sessions:
+  waha_media:
+  n8n_data:
