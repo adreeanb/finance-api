@@ -1,31 +1,31 @@
 import { Router, Request, Response } from 'express';
-import { AuthUserController } from '../controllers/user/AuthUserController'
-import { isAuthenticated } from '../middlewares/isAuthenticated';
+import { AuthUserController } from '../controllers/user/AuthUserController.js'
+import { isAuthenticated } from '../middlewares/isAuthenticated.js';
 // Imports dos Controllers (ajuste os caminhos se necessário)
-import { CreateCategoryController } from '../controllers/category/CreateCategoryController';
-import { UpdateCategoryController } from '../controllers/category/UpdateCategoryController';
-import { DeleteCategoryController } from '../controllers/category/DeleteCategoryController';
+import { CreateCategoryController } from '../controllers/category/CreateCategoryController.js';
+import { UpdateCategoryController } from '../controllers/category/UpdateCategoryController.js';
+import { DeleteCategoryController } from '../controllers/category/DeleteCategoryController.js';
 
-import { CreateTransactionController } from '../controllers/transaction/CreateTransactionController';
-import { UpdateTransactionController } from '../controllers/transaction/UpdateTransactionController';
-import { DeleteTransactionController } from '../controllers/transaction/DeleteTransactionController';
+import { CreateTransactionController } from '../controllers/transaction/CreateTransactionController.js';
+import { UpdateTransactionController } from '../controllers/transaction/UpdateTransactionController.js';
+import { DeleteTransactionController } from '../controllers/transaction/DeleteTransactionController.js';
 
-import { DeleteUserController } from '../controllers/user/DeleteUserController';
-import { UpdateUserController } from '../controllers/user/UpdateUserController';
-import { CreateUserController } from '../controllers/user/CreateUserController';
-import { CurrentUserController } from '../controllers/user/CurrentUserController';
+import { DeleteUserController } from '../controllers/user/DeleteUserController.js';
+import { UpdateUserController } from '../controllers/user/UpdateUserController.js';
+import { CreateUserController } from '../controllers/user/CreateUserController.js';
+import { CurrentUserController } from '../controllers/user/CurrentUserController.js';
 
-import { ListCategoryController } from '../controllers/category/ListCategoryController';
-import { ListTransactionController } from '../controllers/transaction/ListTransactionController';
+import { ListCategoryController } from '../controllers/category/ListCategoryController.js';
+import { ListTransactionController } from '../controllers/transaction/ListTransactionController.js';
 
-import { CreateInstallmentController } from '../controllers/installment/CreateInstallmentController';
-import { ListInstallmentsController } from '../controllers/installment/ListInstallmentsController';
-import { DeleteInstallmentController } from '../controllers/installment/DeleteInstallmentController';
+import { CreateInstallmentController } from '../controllers/installment/CreateInstallmentController.js';
+import { ListInstallmentsController } from '../controllers/installment/ListInstallmentsController.js';
+import { DeleteInstallmentController } from '../controllers/installment/DeleteInstallmentController.js';
 
-import { CreateFixedExpenseController } from '../controllers/fixedExpense/CreateFixedExpenseController';
-import { ListFixedExpensesController } from '../controllers/fixedExpense/ListFixedExpensesController';
-import { DeleteFixedExpenseController } from '../controllers/fixedExpense/DeleteFixedExpenseController';
-import { WhatsAppBotService } from '../services/whatsapp/WhatsAppBotService';
+import { CreateFixedExpenseController } from '../controllers/fixedExpense/CreateFixedExpenseController.js';
+import { ListFixedExpensesController } from '../controllers/fixedExpense/ListFixedExpensesController.js';
+import { DeleteFixedExpenseController } from '../controllers/fixedExpense/DeleteFixedExpenseController.js';
+import { WhatsAppBotService } from '../services/whatsapp/WhatsAppBotService.js';
 
 const routes = Router();
 
