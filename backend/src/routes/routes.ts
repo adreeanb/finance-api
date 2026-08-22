@@ -95,26 +95,22 @@ routes.get('/health', (req, res) => {
 const botService = new WhatsAppBotService();
 
 // Define os tipos Request e Response e retorna o res.json
-routes.post('/chat/process', async (req: Request, res: Response): Promise<any> => {
+routes.post('/chat/process', isAuthenticated, async (req: Request, res: Response): Promise<any> => {
   try {
-    const { message, userId } = req.body;
+    const { message } = req.body;
+    const userId = req.user_id; // ID extraído direto do token JWT pelo middleware
 
-    // Adapte o payload para o formato que o seu Service já espera
-    const payload = {
-      chatId: userId, // Usamos o ID do usuário como identificador da "conversa"
-      message: message,
-      fromMe: false 
-    };
-
-    const respostaIA = await botService.processarMensagem(payload);
+    const respostaIA = await botService.processarMensagem({
+      userId,
+      message
+    });
 
     return res.json({ sucesso: true, resposta: respostaIA });
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ sucesso: false, mensagem: "Erro interno" });
+    return res.status(500).json({ sucesso: false, mensagem: "Erro interno ao processar chat" });
   }
 });
-
 
 export { routes };
