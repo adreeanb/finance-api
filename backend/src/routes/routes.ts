@@ -95,7 +95,7 @@ routes.get('/health', (req, res) => {
 const botService = new WhatsAppBotService();
 
 // Define os tipos Request e Response e retorna o res.json
-routes.post('/api/chat/process', async (req: Request, res: Response): Promise<any> => {
+routes.post('/chat/process', async (req: Request, res: Response): Promise<any> => {
   try {
     const { message, userId } = req.body;
 
