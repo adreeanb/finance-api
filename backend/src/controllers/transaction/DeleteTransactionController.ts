@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { DeleteTransactionService } from '../../services/transaction/DeleteTransactionService';
+import { DeleteTransactionService } from '../../services/transaction/DeleteTransactionService.js';
 
 export class DeleteTransactionController {
   async handle(req: Request, res: Response) {

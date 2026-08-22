@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { CreateUserService } from '../../services/user/CreateUserService';
+import { CreateUserService } from '../../services/user/CreateUserService.js';
 
 export class CreateUserController {
   async handle(req: Request, res: Response) {

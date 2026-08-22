@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { CurrentUserService } from '../../services/user/CurrentUserService';
-import { prisma } from '../../lib/prisma';
+import { CurrentUserService } from '../../services/user/CurrentUserService.js';
+import { prisma } from '../../lib/prisma.js';
 
 class CurrentUserController {
   async handle(req: Request, res: Response) {

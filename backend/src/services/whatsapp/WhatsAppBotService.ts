@@ -1,5 +1,5 @@
-import { prisma } from '../../lib/prisma';
-import { GeminiService } from '../finance-ai/GeminiService';
+import { prisma } from '../../lib/prisma.js';
+import { GeminiService } from '../finance-ai/GeminiService.js';
 
 export interface WebhookPayload {
   chatId: string;

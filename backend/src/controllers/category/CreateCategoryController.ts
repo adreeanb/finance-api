@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { CreateCategoryService } from '../../services/category/CreateCategoryService';
+import { CreateCategoryService } from '../../services/category/CreateCategoryService.js';
 
 export class CreateCategoryController {
   async handle(req: Request, res: Response) {

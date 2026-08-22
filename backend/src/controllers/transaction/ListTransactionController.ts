@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ListTransactionService } from '../../services/transaction/ListTransactionService';
+import { ListTransactionService } from '../../services/transaction/ListTransactionService.js';
 
 export class ListTransactionController {
   async handle(req: Request, res: Response) {

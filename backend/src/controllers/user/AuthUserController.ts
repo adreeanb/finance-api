@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { AuthUserService } from '../../services/user/AuthUserService';
+import { AuthUserService } from '../../services/user/AuthUserService.js';
 
 export class AuthUserController {
   async handle(req: Request, res: Response) {

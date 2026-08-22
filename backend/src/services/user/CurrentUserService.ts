@@ -1,4 +1,4 @@
-import { prisma } from '../../lib/prisma';
+import { prisma } from '../../lib/prisma.js';
 
 class CurrentUserService {
   async execute(user_id: string) {

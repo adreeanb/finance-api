@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { CreateTransactionService } from '../../services/transaction/CreateTransactionService';
+import { CreateTransactionService } from '../../services/transaction/CreateTransactionService.js';
 
 export class CreateTransactionController {
   async handle(req: Request, res: Response) {

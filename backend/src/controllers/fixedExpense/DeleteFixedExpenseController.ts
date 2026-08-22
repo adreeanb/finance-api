@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { DeleteFixedExpenseService } from '../../services/fixedExpense/DeleteFixedExpenseService';
+import { DeleteFixedExpenseService } from '../../services/fixedExpense/DeleteFixedExpenseService.js';
 
 export class DeleteFixedExpenseController {
   async handle(req: Request, res: Response) {

@@ -1,4 +1,4 @@
-import { prisma } from '../../lib/prisma';
+import { prisma } from '../../lib/prisma.js';
 
 export class DeleteFixedExpenseService {
   async execute(id: string, userId: string) {

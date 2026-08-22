@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { UpdateTransactionService } from '../../services/transaction/UpdateTransactionService';
+import { UpdateTransactionService } from '../../services/transaction/UpdateTransactionService.js';
 
 export class UpdateTransactionController {
   async handle(req: Request, res: Response) {

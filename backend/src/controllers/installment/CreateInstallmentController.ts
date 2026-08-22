@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { CreateInstallmentService } from '../../services/installment/CreateInstallmentService';
+import { CreateInstallmentService } from '../../services/installment/CreateInstallmentService.js';
 
 export class CreateInstallmentController {
   async handle(req: Request, res: Response) {

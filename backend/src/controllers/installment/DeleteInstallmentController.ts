@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { DeleteInstallmentService } from '../../services/installment/DeleteInstallmentService';
+import { DeleteInstallmentService } from '../../services/installment/DeleteInstallmentService.js';
 
 export class DeleteInstallmentController {
   async handle(req: Request, res: Response) {

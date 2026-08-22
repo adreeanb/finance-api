@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ListFixedExpensesService } from '../../services/fixedExpense/ListFixedExpensesService';
+import { ListFixedExpensesService } from '../../services/fixedExpense/ListFixedExpensesService.js';
 
 export class ListFixedExpensesController {
   async handle(req: Request, res: Response) {
