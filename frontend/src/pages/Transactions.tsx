@@ -23,13 +23,18 @@ export function Transactions() {
 
     // A. Base mínima: últimos 12 meses contando a partir de hoje
     const date = new Date();
+
+    // Começa pelo mês seguinte
+    date.setMonth(date.getMonth() + 1);
+
     for (let i = 0; i < 12; i++) {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
-      uniqueMonths.add(`${year}-${month}`);
-      date.setMonth(date.getMonth());
-    }
 
+      uniqueMonths.add(`${year}-${month}`);
+
+      date.setMonth(date.getMonth() - 1);
+    }
     // B. Adiciona dinamicamente meses futuros se houver transações neles
     if (transactions) {
       transactions.forEach(t => {
