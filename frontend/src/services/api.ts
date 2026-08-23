@@ -23,8 +23,9 @@ api.interceptors.response.use(
   (error) => {
     // Se o backend disser que o token expirou (401), derruba a sessão
     if (error.response?.status === 401) {
-      localStorage.removeItem('@FinanceApp:token');
-      window.location.href = '/'; 
+      //localStorage.removeItem('@FinanceApp:token');
+     // window.location.href = '/'; 
+     console.error("❌ O BACKEND RECUSOU O TOKEN! Erro 401");
     }
     return Promise.reject(error);
   }
