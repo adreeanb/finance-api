@@ -10,7 +10,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   // Chamamos o nosso hook customizado em vez do useContext
   const { isAuthenticated } = useAuth();
 
-const hasToken = !!localStorage.getItem('FinanceApp:token');
+const hasToken = !!localStorage.getItem('@FinanceApp:token');
 
   if (!isAuthenticated && !hasToken) {
     // Se não estiver logado, redireciona para a tela de login

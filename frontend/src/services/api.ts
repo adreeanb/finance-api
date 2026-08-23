@@ -1,16 +1,13 @@
 import axios from 'axios';
 
-// Cria a instância do Axios com o endereço do seu backend Node
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // Mude a porta se o seu backend estiver usando outra
+  baseURL: import.meta.env.VITE_API_URL, 
 });
 
-// Interceptor: Tudo o que sair do frontend para a API passa por aqui antes
 api.interceptors.request.use((config) => {
-  // Busca o token que salvaremos no Local Storage ao fazer login
-  const token = localStorage.getItem('@FinanceWeb:token');
+ 
+  const token = localStorage.getItem('@FinanceApp:token');
 
-  // Se o token existir, injeta ele no cabeçalho de Autorização
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,3 +16,16 @@ api.interceptors.request.use((config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+//Analisa a resposta do backend
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Se o backend disser que o token expirou (401), derruba a sessão
+    if (error.response?.status === 401) {
+      localStorage.removeItem('@FinanceApp:token');
+      window.location.href = '/'; 
+    }
+    return Promise.reject(error);
+  }
+);
