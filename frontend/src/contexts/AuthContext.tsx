@@ -14,13 +14,10 @@ interface AuthContextData {
   signOut: () => void;
 }
 
-// 1. Tiramos o "export" daqui. Ele fica interno neste arquivo.
 const AuthContext = createContext({} as AuthContextData);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  
-  // 2. LAZY INITIALIZATION: O React roda essa função apenas uma vez.
-  // Resolve o erro do useEffect e evita re-renderizações desnecessárias!
+  // Inicialização segura direto do localStorage
   const [user, setUser] = useState<User | null>(() => {
     const token = localStorage.getItem('@FinanceApp:token');
     
@@ -32,7 +29,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
-  // 3. Tipamos os parâmetros para remover o erro de "any"
   async function signIn({ email, password }: { email: string; password: string }) {
     const response = await api.post('/login', { email, password });
     const { token } = response.data; 
@@ -45,19 +41,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function signOut() {
     localStorage.removeItem('@FinanceApp:token');
-    api.defaults.headers.common['Authorization'] = '';
+    delete api.defaults.headers.common['Authorization'];
     setUser(null);
   }
 
+  // Garantimos que isAuthenticated seja rigorosamente verdadeiro se houver user OU o token no storage
+  const hasTokenInStorage = !!localStorage.getItem('@FinanceApp:token');
+  const isAuthenticated = !!user || hasTokenInStorage;
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-// 4. Criamos um Hook customizado para ser consumido nas outras telas.
-// O comentário abaixo avisa o Vite para ignorar a regra do Fast Refresh só nesta linha.
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
