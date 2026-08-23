@@ -10,7 +10,7 @@ import {
   PlusCircle,
   CreditCard,
   Repeat,
-  PieChart // NOVO: Ícone para a seção de categorias
+  PieChart 
 } from 'lucide-react';
 import { useTransactions } from '../hooks/useTransaction';
 import { useInstallments } from '../hooks/useInstallments';
@@ -22,8 +22,9 @@ import { ChatWidget } from '../components/ChatWidget';
 export function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Pega o mês atual no formato YYYY-MM para ser o padrão
+  // Pega a data atual e avança 1 mês para ser o padrão (Mês Seguinte)
   const now = new Date();
+  now.setMonth(now.getMonth() + 1);
   const currentYear = now.getFullYear();
   const currentMonthNum = String(now.getMonth() + 1).padStart(2, '0');
   const currentDateString = `${currentYear}-${currentMonthNum}`;
@@ -111,7 +112,7 @@ export function Dashboard() {
     };
   }, [filteredTransactions, activeInstallments, activeFixedExpenses, user]);
 
-  // NOVO: 5. Cálculo do Top 3 Categorias de Despesas
+  // 5. Cálculo do Top 3 Categorias de Despesas
   const topCategories = useMemo(() => {
     if (metrics.totalExpense === 0) return [];
 
@@ -121,9 +122,7 @@ export function Dashboard() {
 
     const categoryTotals: Record<string, { name: string; amount: number }> = {};
 
-    // Função auxiliar para somar os valores agrupados por categoria
     const addExpense = (category: CategoryLike, amount: number) => {
-      // Tenta pegar o nome da categoria vindo do backend (ou usa "Outros" como fallback)
       const name = category?.name || 'Outros';
       if (!categoryTotals[name]) {
         categoryTotals[name] = { name, amount: 0 };
@@ -131,22 +130,18 @@ export function Dashboard() {
       categoryTotals[name].amount += amount;
     };
 
-    // Soma transações à vista
     filteredTransactions.forEach((t) => {
       if (t.type === 'EXPENSE') addExpense((t as { category?: CategoryLike }).category, Number(t.amount));
     });
 
-    // Soma parcelamentos
     activeInstallments.forEach((inst) => {
       addExpense(inst.category, Number(inst.installmentValue));
     });
 
-    // Soma gastos fixos
     activeFixedExpenses.forEach((fixed) => {
       addExpense(fixed.category, Number(fixed.amount));
     });
 
-    // Converte para array, ordena do maior para o menor e pega os 3 primeiros
     return Object.values(categoryTotals)
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 3)
@@ -281,7 +276,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* NOVO: Top 3 Categorias */}
+      {/* Top 3 Categorias */}
       {topCategories.length > 0 && (
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-4 text-gray-800">
@@ -290,7 +285,6 @@ export function Dashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {topCategories.map((cat, index) => {
-              // Definindo cores diferentes para o pódio (1º, 2º e 3º)
               const colors = ['bg-rose-500', 'bg-orange-500', 'bg-amber-500'];
               const barColor = colors[index] || 'bg-indigo-500';
 
@@ -382,7 +376,7 @@ export function Dashboard() {
             <p className="text-sm text-gray-400 py-2">Nenhuma transação à vista neste mês.</p>
           ) : (
             <>
-              {/* VISÃO MOBILE: Lista de Cards (Escondido em telas grandes) */}
+              {/* VISÃO MOBILE: Lista de Cards */}
               <div className="block sm:hidden space-y-2">
                 {filteredTransactions.map((t) => (
                   <div key={t.id} className="flex justify-between items-center p-3 rounded-lg bg-gray-50 border border-gray-100 text-sm">
@@ -406,7 +400,7 @@ export function Dashboard() {
                 ))}
               </div>
 
-              {/* VISÃO DESKTOP: Tabela Tradicional (Escondido no celular) */}
+              {/* VISÃO DESKTOP: Tabela Tradicional */}
               <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>

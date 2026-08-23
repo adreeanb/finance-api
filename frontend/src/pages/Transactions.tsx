@@ -8,24 +8,46 @@ export function Transactions() {
   const { data: transactions, isLoading } = useTransactions();
   const { mutateAsync: deleteMutate } = useDeleteTransaction(); 
 
-  // 1. Estado para armazenar o mês selecionado (padrão: mês atual)
-  const currentDateString = new Date().toISOString().slice(0, 7);
+  // 1. Pega a data atual, avança 1 mês para ser o padrão (Mês Seguinte)
+  const now = new Date();
+  now.setMonth(now.getMonth() + 1);
+  const currentYear = now.getFullYear();
+  const currentMonthNum = String(now.getMonth() + 1).padStart(2, '0');
+  const currentDateString = `${currentYear}-${currentMonthNum}`;
+  
   const [selectedMonth, setSelectedMonth] = useState(currentDateString);
 
-  // 2. Gera dinamicamente as opções dos últimos 12 meses
+  // 2. Gera dinamicamente as opções combinando os últimos 12 meses + meses futuros com transações
   const monthOptions = useMemo(() => {
-    const options = [];
+    const uniqueMonths = new Set<string>();
+
+    // A. Base mínima: últimos 12 meses contando a partir de hoje
     const date = new Date();
     for (let i = 0; i < 12; i++) {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
-      const value = `${year}-${month}`;
-      const label = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-      options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
+      uniqueMonths.add(`${year}-${month}`);
       date.setMonth(date.getMonth() - 1);
     }
-    return options;
-  }, []);
+
+    // B. Adiciona dinamicamente meses futuros se houver transações neles
+    if (transactions) {
+      transactions.forEach(t => {
+        const dateStr = t.date || t.createdAt;
+        if (dateStr) uniqueMonths.add(dateStr.slice(0, 7));
+      });
+    }
+
+    // Transforma o Set em Array e ordena do mais recente/futuro para o mais antigo
+    const sortedMonths = Array.from(uniqueMonths).sort((a, b) => b.localeCompare(a));
+
+    return sortedMonths.map(value => {
+      const [y, m] = value.split('-');
+      const dateObj = new Date(Number(y), Number(m) - 1, 1);
+      const label = dateObj.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      return { value, label: label.charAt(0).toUpperCase() + label.slice(1) };
+    });
+  }, [transactions]);
 
   // 3. Filtra as transações de acordo com o mês selecionado
   const filteredTransactions = useMemo(() => {
