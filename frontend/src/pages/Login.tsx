@@ -5,6 +5,7 @@ import { Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 // 1. Importamos o nosso hook customizado
 import { useAuth } from '../contexts/AuthContext';
+import { useEffect } from 'react';
 
 // Criamos o "Schema" de validação com Zod
 const loginSchema = z.object({
@@ -16,6 +17,17 @@ const loginSchema = z.object({
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
 export function Login() {
+  
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Se bater na tela de login e já tiver token, joga pro dashboard
+    const token = localStorage.getItem('FinanceApp:token');
+    if (token) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
+
   const {
     register,
     handleSubmit,
@@ -23,8 +35,7 @@ export function Login() {
   } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
   });
-  
-  const navigate = useNavigate();
+
   // 2. Extraímos a função signIn do contexto
   const { signIn } = useAuth();
 

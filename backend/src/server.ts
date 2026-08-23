@@ -7,7 +7,11 @@ import { routes } from './routes/routes.js';
 const app = express();
 
 app.use(cors({
-  origin: '*' // Para produção isso deve ser restrito, mas para teste local é perfeito
+  origin: 'https://finance-api-frontend.onrender.com', 
+
+  credentials: true, 
+
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
 }));
 app.use(express.json());
 app.use(routes);
