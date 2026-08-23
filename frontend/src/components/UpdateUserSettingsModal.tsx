@@ -13,12 +13,8 @@ interface UpdateUserSettingsModalProps {
 
 const updateSchema = z.object({
   name: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
-  email: z.string().email('Digite um e-mail válido.'),
   phone: z.string().optional(),
   salary: z.coerce.number().min(0, 'O valor da renda não pode ser negativo.'),
-  password: z.string().optional().refine((val) => !val || val.length >= 6, {
-    message: 'A nova senha deve ter pelo menos 6 caracteres.',
-  }),
 });
 
 type UpdateUserInputs = z.infer<typeof updateSchema>;
@@ -30,10 +26,8 @@ export function UpdateUserSettingsModal({ isOpen, onRequestClose, user }: Update
     resolver: zodResolver(updateSchema),
     values: {
       name: user?.name || '',
-      email: user?.email || '',
       phone: user?.phone || '',
       salary: user?.salary || 0,
-      password: '',
     },
   });
 
@@ -43,14 +37,9 @@ export function UpdateUserSettingsModal({ isOpen, onRequestClose, user }: Update
     try {
       const payload: UpdateUserInputs = {
         name: data.name,
-        email: data.email,
         phone: data.phone,
         salary: data.salary,
       };
-
-      if (data.password && data.password.trim() !== '') {
-        payload.password = data.password;
-      }
 
       await mutateAsync(payload);
       alert('Dados atualizados com sucesso!');
@@ -90,15 +79,6 @@ export function UpdateUserSettingsModal({ isOpen, onRequestClose, user }: Update
             {errors.name && <span className="text-rose-500 text-xs mt-1 block">{errors.name.message}</span>}
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">E-mail</label>
-            <input 
-              type="email"
-              {...register('email')} 
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
-            />
-            {errors.email && <span className="text-rose-500 text-xs mt-1 block">{errors.email.message}</span>}
-          </div>
 
           <div>
             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Telefone / WhatsApp</label>
@@ -119,17 +99,6 @@ export function UpdateUserSettingsModal({ isOpen, onRequestClose, user }: Update
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
             />
             {errors.salary && <span className="text-rose-500 text-xs mt-1 block">{errors.salary.message}</span>}
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Nova Senha (opcional)</label>
-            <input 
-              type="password"
-              {...register('password')} 
-              placeholder="Deixe em branco para manter a atual" 
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
-            />
-            {errors.password && <span className="text-rose-500 text-xs mt-1 block">{errors.password.message}</span>}
           </div>
 
           <button 

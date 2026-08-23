@@ -9,7 +9,8 @@ import {
   ArrowDownCircle, 
   PlusCircle,
   CreditCard,
-  Repeat
+  Repeat,
+  PieChart // NOVO: Ícone para a seção de categorias
 } from 'lucide-react';
 import { useTransactions } from '../hooks/useTransaction';
 import { useInstallments } from '../hooks/useInstallments';
@@ -20,7 +21,13 @@ import { ChatWidget } from '../components/ChatWidget';
 
 export function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const currentDateString = new Date().toISOString().slice(0, 7);
+  
+  // Pega o mês atual no formato YYYY-MM para ser o padrão
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonthNum = String(now.getMonth() + 1).padStart(2, '0');
+  const currentDateString = `${currentYear}-${currentMonthNum}`;
+  
   const [selectedMonth, setSelectedMonth] = useState(currentDateString);
 
   const { data: transactions, isLoading: isLoadingTx } = useTransactions();
@@ -63,7 +70,7 @@ export function Dashboard() {
       .filter(Boolean) as (typeof installments[0] & { currentParcel: number })[];
   }, [installments, selectedMonth]);
 
-  // 3. Gastos Fixos Ativos (Filtragem para a lista)
+  // 3. Gastos Fixos Ativos
   const activeFixedExpenses = useMemo(() => {
     if (!fixedExpenses) return [];
     return fixedExpenses.filter((fixed) => fixed.isActive);
@@ -104,22 +111,96 @@ export function Dashboard() {
     };
   }, [filteredTransactions, activeInstallments, activeFixedExpenses, user]);
 
+  // NOVO: 5. Cálculo do Top 3 Categorias de Despesas
+  const topCategories = useMemo(() => {
+    if (metrics.totalExpense === 0) return [];
+
+    type CategoryLike = {
+      name?: string | null;
+    } | null | undefined;
+
+    const categoryTotals: Record<string, { name: string; amount: number }> = {};
+
+    // Função auxiliar para somar os valores agrupados por categoria
+    const addExpense = (category: CategoryLike, amount: number) => {
+      // Tenta pegar o nome da categoria vindo do backend (ou usa "Outros" como fallback)
+      const name = category?.name || 'Outros';
+      if (!categoryTotals[name]) {
+        categoryTotals[name] = { name, amount: 0 };
+      }
+      categoryTotals[name].amount += amount;
+    };
+
+    // Soma transações à vista
+    filteredTransactions.forEach((t) => {
+      if (t.type === 'EXPENSE') addExpense((t as { category?: CategoryLike }).category, Number(t.amount));
+    });
+
+    // Soma parcelamentos
+    activeInstallments.forEach((inst) => {
+      addExpense(inst.category, Number(inst.installmentValue));
+    });
+
+    // Soma gastos fixos
+    activeFixedExpenses.forEach((fixed) => {
+      addExpense(fixed.category, Number(fixed.amount));
+    });
+
+    // Converte para array, ordena do maior para o menor e pega os 3 primeiros
+    return Object.values(categoryTotals)
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 3)
+      .map((cat) => ({
+        ...cat,
+        percentage: (cat.amount / metrics.totalExpense) * 100,
+      }));
+  }, [filteredTransactions, activeInstallments, activeFixedExpenses, metrics.totalExpense]);
+
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   const monthOptions = useMemo(() => {
-    const options = [];
+    const uniqueMonths = new Set<string>();
+
     const date = new Date();
     for (let i = 0; i < 12; i++) {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
-      const value = `${year}-${month}`;
-      const label = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-      options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
+      uniqueMonths.add(`${year}-${month}`);
       date.setMonth(date.getMonth() - 1);
     }
-    return options;
-  }, []);
+
+    if (transactions) {
+      transactions.forEach(t => {
+        const dateStr = t.date || t.createdAt;
+        if (dateStr) uniqueMonths.add(dateStr.slice(0, 7));
+      });
+    }
+
+    if (installments) {
+      installments.forEach(inst => {
+        const startDate = new Date(inst.startDate);
+        const startYear = startDate.getUTCFullYear();
+        const startMonth = startDate.getUTCMonth(); 
+
+        for (let i = 0; i < inst.totalInstallments; i++) {
+          const currentM = startMonth + i;
+          const y = startYear + Math.floor(currentM / 12);
+          const m = (currentM % 12) + 1;
+          uniqueMonths.add(`${y}-${String(m).padStart(2, '0')}`);
+        }
+      });
+    }
+
+    const sortedMonths = Array.from(uniqueMonths).sort((a, b) => b.localeCompare(a));
+
+    return sortedMonths.map(value => {
+      const [y, m] = value.split('-');
+      const dateObj = new Date(Number(y), Number(m) - 1, 1);
+      const label = dateObj.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      return { value, label: label.charAt(0).toUpperCase() + label.slice(1) };
+    });
+  }, [transactions, installments]); 
 
   return (
     <main className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
@@ -150,7 +231,6 @@ export function Dashboard() {
 
       {/* Cards de Métricas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* ... (Cards de Métricas mantidos iguais, sem alteração) ... */}
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center justify-between text-gray-500 mb-2">
             <span className="text-sm font-medium">Receitas</span>
@@ -200,6 +280,47 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* NOVO: Top 3 Categorias */}
+      {topCategories.length > 0 && (
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+          <div className="flex items-center gap-2 mb-4 text-gray-800">
+            <PieChart className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-lg font-bold">Top 3 Maiores Despesas</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {topCategories.map((cat, index) => {
+              // Definindo cores diferentes para o pódio (1º, 2º e 3º)
+              const colors = ['bg-rose-500', 'bg-orange-500', 'bg-amber-500'];
+              const barColor = colors[index] || 'bg-indigo-500';
+
+              return (
+                <div key={cat.name} className="space-y-2">
+                  <div className="flex justify-between items-end">
+                    <span className="font-semibold text-gray-700 text-sm truncate pr-2">
+                      {index + 1}º {cat.name}
+                    </span>
+                    <span className="font-bold text-gray-900 text-sm">
+                      {formatCurrency(cat.amount)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden flex-1">
+                      <div
+                        className={`${barColor} h-full rounded-full transition-all duration-500`}
+                        style={{ width: `${cat.percentage}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-gray-500 w-10 text-right">
+                      {cat.percentage.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Detalhamento do Ciclo */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
@@ -324,7 +445,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Modal e Chat (Removida a duplicata do Modal) */}
+      {/* Modal e Chat */}
       <NewTransactionModal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} />
       <ChatWidget />
     </main>
